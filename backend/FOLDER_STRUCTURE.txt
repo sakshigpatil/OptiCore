@@ -1,0 +1,110 @@
+backend/
+├── hrms/                          # Django project directory
+│   ├── __init__.py
+│   ├── settings/                  # Split settings
+│   │   ├── __init__.py
+│   │   ├── base.py               # Base settings
+│   │   ├── development.py        # Development settings
+│   │   ├── production.py         # Production settings
+│   │   └── testing.py           # Test settings
+│   ├── urls.py                   # Main URL configuration
+│   ├── wsgi.py                   # WSGI application
+│   └── asgi.py                   # ASGI application
+├── apps/                         # Django applications
+│   ├── __init__.py
+│   ├── authentication/           # Authentication & User management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Custom User model
+│   │   ├── serializers.py       # Auth serializers
+│   │   ├── views.py             # Auth views
+│   │   ├── urls.py              # Auth URLs
+│   │   ├── permissions.py       # Custom permissions
+│   │   └── tests.py             # Auth tests
+│   ├── employees/               # Employee management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Employee model
+│   │   ├── serializers.py       # Employee serializers
+│   │   ├── views.py             # Employee views
+│   │   ├── urls.py              # Employee URLs
+│   │   ├── filters.py           # Filtering logic
+│   │   ├── services.py          # Business logic
+│   │   └── tests.py             # Employee tests
+│   ├── departments/             # Department management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Department model
+│   │   ├── serializers.py       # Department serializers
+│   │   ├── views.py             # Department views
+│   │   ├── urls.py              # Department URLs
+│   │   └── tests.py             # Department tests
+│   ├── projects/                # Project & Task management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Project & Task models
+│   │   ├── serializers.py       # Project serializers
+│   │   ├── views.py             # Project views
+│   │   ├── urls.py              # Project URLs
+│   │   └── tests.py             # Project tests
+│   ├── attendance/              # Attendance management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Attendance model
+│   │   ├── serializers.py       # Attendance serializers
+│   │   ├── views.py             # Attendance views
+│   │   ├── urls.py              # Attendance URLs
+│   │   ├── services.py          # Clock-in/out logic
+│   │   └── tests.py             # Attendance tests
+│   ├── leaves/                  # Leave management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Leave models
+│   │   ├── serializers.py       # Leave serializers
+│   │   ├── views.py             # Leave views
+│   │   ├── urls.py              # Leave URLs
+│   │   ├── services.py          # Leave calculation logic
+│   │   └── tests.py             # Leave tests
+│   ├── payroll/                 # Payroll management
+│   │   ├── __init__.py
+│   │   ├── models.py            # Payroll models
+│   │   ├── serializers.py       # Payroll serializers
+│   │   ├── views.py             # Payroll views
+│   │   ├── urls.py              # Payroll URLs
+│   │   ├── services.py          # Salary calculation
+│   │   └── tests.py             # Payroll tests
+│   └── notifications/           # Notification system
+│       ├── __init__.py
+│       ├── models.py            # Notification model
+│       ├── serializers.py       # Notification serializers
+│       ├── views.py             # Notification views
+│       ├── urls.py              # Notification URLs
+│       ├── services.py          # Notification logic
+│       └── tests.py             # Notification tests
+├── core/                        # Core utilities
+│   ├── __init__.py
+│   ├── permissions.py           # Global permissions
+│   ├── pagination.py            # Custom pagination
+│   ├── exceptions.py            # Custom exceptions
+│   ├── mixins.py               # Common mixins
+│   ├── validators.py           # Custom validators
+│   └── utils.py                # Utility functions
+├── static/                      # Static files
+│   ├── admin/                   # Django admin static files
+│   └── api/                     # API documentation assets
+├── media/                       # User uploaded files
+│   ├── profile_pictures/        # Profile pictures
+│   └── documents/              # Employee documents
+├── fixtures/                    # Sample data
+│   ├── users.json              # Sample users
+│   ├── departments.json        # Sample departments
+│   └── employees.json          # Sample employees
+├── requirements/               # Python dependencies
+│   ├── base.txt               # Base requirements
+│   ├── development.txt        # Development requirements
+│   └── production.txt         # Production requirements
+├── scripts/                    # Utility scripts
+│   ├── seed_data.py           # Seed database
+│   ├── backup_db.py           # Database backup
+│   └── clear_cache.py         # Clear cache
+├── manage.py                   # Django management script
+├── requirements.txt            # Main requirements file
+├── Dockerfile                  # Docker configuration
+├── docker-compose.yml          # Docker compose setup
+├── .env.example               # Environment variables template
+├── .gitignore                 # Git ignore file
+└── README.md                  # Backend documentation

@@ -1,0 +1,11 @@
+from rest_framework import serializers
+from .models import PayrollRecord
+
+class PayrollRecordSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='employee.user.get_full_name', read_only=True)
+    employee_id = serializers.CharField(source='employee.employee_id', read_only=True)
+
+    class Meta:
+        model = PayrollRecord
+        fields = '__all__'
+        read_only_fields = ('created_at', 'updated_at')

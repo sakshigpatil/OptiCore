@@ -1,0 +1,132 @@
+frontend/
+├── public/                      # Public assets
+│   ├── index.html              # HTML template
+│   ├── favicon.ico             # Favicon
+│   ├── logo192.png             # Logo assets
+│   ├── logo512.png             
+│   └── manifest.json           # PWA manifest
+├── src/                        # Source code
+│   ├── components/             # Reusable components
+│   │   ├── common/             # Common UI components
+│   │   │   ├── Button.jsx      # Custom button
+│   │   │   ├── Card.jsx        # Card component
+│   │   │   ├── Input.jsx       # Form input
+│   │   │   ├── Modal.jsx       # Modal component
+│   │   │   ├── Table.jsx       # Data table
+│   │   │   ├── Badge.jsx       # Status badge
+│   │   │   ├── Loading.jsx     # Loading spinner
+│   │   │   └── Pagination.jsx  # Pagination component
+│   │   ├── layout/             # Layout components
+│   │   │   ├── Header.jsx      # Top navigation
+│   │   │   ├── Sidebar.jsx     # Side navigation
+│   │   │   ├── Layout.jsx      # Main layout wrapper
+│   │   │   ├── Footer.jsx      # Footer component
+│   │   │   └── Breadcrumb.jsx  # Breadcrumb navigation
+│   │   ├── forms/              # Form components
+│   │   │   ├── LoginForm.jsx   # Login form
+│   │   │   ├── EmployeeForm.jsx # Employee form
+│   │   │   ├── LeaveForm.jsx   # Leave request form
+│   │   │   ├── TaskForm.jsx    # Task form
+│   │   │   └── AttendanceForm.jsx # Attendance form
+│   │   ├── charts/             # Chart components
+│   │   │   ├── BarChart.jsx    # Bar chart
+│   │   │   ├── LineChart.jsx   # Line chart
+│   │   │   ├── PieChart.jsx    # Pie chart
+│   │   │   └── DashboardChart.jsx # Dashboard charts
+│   │   └── ui/                 # UI-specific components
+│   │       ├── Dashboard.jsx   # Dashboard widgets
+│   │       ├── StatsCard.jsx   # Statistics card
+│   │       ├── NotificationBell.jsx # Notification bell
+│   │       └── UserProfile.jsx # User profile dropdown
+│   ├── pages/                  # Page components
+│   │   ├── auth/               # Authentication pages
+│   │   │   ├── Login.jsx       # Login page
+│   │   │   ├── Register.jsx    # Registration page
+│   │   │   └── ForgotPassword.jsx # Password reset
+│   │   ├── hr/                 # HR Dashboard pages
+│   │   │   ├── Dashboard.jsx   # HR main dashboard
+│   │   │   ├── Employees.jsx   # Employee management
+│   │   │   ├── EmployeeDetail.jsx # Employee details
+│   │   │   ├── Departments.jsx # Department management
+│   │   │   ├── Leaves.jsx      # Leave management
+│   │   │   ├── Attendance.jsx  # Attendance overview
+│   │   │   ├── Payroll.jsx     # Payroll management
+│   │   │   └── Reports.jsx     # HR reports
+│   │   ├── employee/           # Employee Dashboard pages
+│   │   │   ├── Dashboard.jsx   # Employee dashboard
+│   │   │   ├── Profile.jsx     # Employee profile
+│   │   │   ├── Tasks.jsx       # Task management
+│   │   │   ├── Projects.jsx    # Project view
+│   │   │   ├── Attendance.jsx  # Personal attendance
+│   │   │   ├── Leaves.jsx      # Leave requests
+│   │   │   ├── Payslip.jsx     # Salary details
+│   │   │   └── TimeSheet.jsx   # Time tracking
+│   │   └── shared/             # Shared pages
+│   │       ├── NotFound.jsx    # 404 page
+│   │       ├── Unauthorized.jsx # 403 page
+│   │       └── ServerError.jsx # 500 page
+│   ├── store/                  # Redux store
+│   │   ├── index.js            # Store configuration
+│   │   ├── slices/             # Redux slices
+│   │   │   ├── authSlice.js    # Authentication state
+│   │   │   ├── employeeSlice.js # Employee state
+│   │   │   ├── departmentSlice.js # Department state
+│   │   │   ├── projectSlice.js # Project state
+│   │   │   ├── taskSlice.js    # Task state
+│   │   │   ├── attendanceSlice.js # Attendance state
+│   │   │   ├── leaveSlice.js   # Leave state
+│   │   │   ├── payrollSlice.js # Payroll state
+│   │   │   └── notificationSlice.js # Notification state
+│   │   └── middleware/         # Redux middleware
+│   │       └── api.js          # RTK Query API
+│   ├── services/               # API services
+│   │   ├── api.js              # Axios configuration
+│   │   ├── auth.js             # Authentication API
+│   │   ├── employees.js        # Employee API
+│   │   ├── departments.js      # Department API
+│   │   ├── projects.js         # Project API
+│   │   ├── tasks.js            # Task API
+│   │   ├── attendance.js       # Attendance API
+│   │   ├── leaves.js           # Leave API
+│   │   ├── payroll.js          # Payroll API
+│   │   └── notifications.js    # Notification API
+│   ├── hooks/                  # Custom React hooks
+│   │   ├── useAuth.js          # Authentication hook
+│   │   ├── useLocalStorage.js  # Local storage hook
+│   │   ├── useDebounce.js      # Debounce hook
+│   │   ├── usePagination.js    # Pagination hook
+│   │   └── usePermissions.js   # Permission hook
+│   ├── utils/                  # Utility functions
+│   │   ├── constants.js        # App constants
+│   │   ├── helpers.js          # Helper functions
+│   │   ├── validators.js       # Form validators
+│   │   ├── formatters.js       # Data formatters
+│   │   └── permissions.js      # Permission utilities
+│   ├── styles/                 # Styling files
+│   │   ├── globals.css         # Global styles
+│   │   ├── components.css      # Component styles
+│   │   └── tailwind.css        # Tailwind directives
+│   ├── assets/                 # Static assets
+│   │   ├── images/             # Image files
+│   │   │   ├── logo.png        # App logo
+│   │   │   ├── avatar.png      # Default avatar
+│   │   │   └── icons/          # Icon assets
+│   │   └── fonts/              # Custom fonts
+│   ├── contexts/               # React contexts (if not using Redux)
+│   │   ├── AuthContext.js      # Auth context
+│   │   ├── ThemeContext.js     # Theme context
+│   │   └── NotificationContext.js # Notification context
+│   ├── App.jsx                 # Main App component
+│   ├── App.css                 # App styles
+│   ├── index.js                # Entry point
+│   └── index.css               # Global CSS
+├── .env                        # Environment variables
+├── .env.example                # Environment template
+├── .gitignore                  # Git ignore
+├── package.json                # NPM dependencies
+├── package-lock.json           # NPM lock file
+├── tailwind.config.js          # Tailwind configuration
+├── postcss.config.js           # PostCSS configuration
+├── Dockerfile                  # Docker configuration
+├── nginx.conf                  # Nginx configuration
+└── README.md                   # Frontend documentation

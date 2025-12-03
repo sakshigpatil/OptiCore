@@ -1,0 +1,87 @@
+[
+  {
+    "model": "authentication.user",
+    "pk": 1,
+    "fields": {
+      "username": "admin",
+      "email": "admin@hrms.com",
+      "first_name": "System",
+      "last_name": "Administrator",
+      "role": "ADMIN_HR",
+      "phone": "+1234567890",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true,
+      "password": "pbkdf2_sha256$600000$dummy$hash", 
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "authentication.user",
+    "pk": 2,
+    "fields": {
+      "username": "hr.manager",
+      "email": "hr@hrms.com",
+      "first_name": "HR",
+      "last_name": "Manager",
+      "role": "ADMIN_HR",
+      "phone": "+1234567891",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "password": "pbkdf2_sha256$600000$dummy$hash",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "authentication.user",
+    "pk": 3,
+    "fields": {
+      "username": "john.doe",
+      "email": "john.doe@hrms.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "role": "MANAGER",
+      "phone": "+1234567892",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "password": "pbkdf2_sha256$600000$dummy$hash",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "authentication.user",
+    "pk": 4,
+    "fields": {
+      "username": "jane.smith",
+      "email": "jane.smith@hrms.com",
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "role": "EMPLOYEE",
+      "phone": "+1234567893",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "password": "pbkdf2_sha256$600000$dummy$hash",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "authentication.user",
+    "pk": 5,
+    "fields": {
+      "username": "mike.johnson",
+      "email": "mike.johnson@hrms.com",
+      "first_name": "Mike",
+      "last_name": "Johnson",
+      "role": "EMPLOYEE",
+      "phone": "+1234567894",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "password": "pbkdf2_sha256$600000$dummy$hash",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "model": "leaves.leavetype",
+    "pk": 1,
+    "fields": {
+      "name": "Annual Leave",
+      "description": "Annual vacation leave",
+      "days_allowed_per_year": 25,
+      "is_active": true
+    }
+  },
+  {
+    "model": "leaves.leavetype",
+    "pk": 2,
+    "fields": {
+      "name": "Sick Leave",
+      "description": "Medical leave",
+      "days_allowed_per_year": 10,
+      "is_active": true
+    }
+  },
+  {
+    "model": "leaves.leavetype",
+    "pk": 3,
+    "fields": {
+      "name": "Maternity Leave",
+      "description": "Maternity leave",
+      "days_allowed_per_year": 90,
+      "is_active": true
+    }
+  },
+  {
+    "model": "leaves.leavetype",
+    "pk": 4,
+    "fields": {
+      "name": "Personal Leave",
+      "description": "Personal time off",
+      "days_allowed_per_year": 5,
+      "is_active": true
+    }
+  }
+]

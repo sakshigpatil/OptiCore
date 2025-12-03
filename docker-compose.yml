@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hrms_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    networks:
+      - hrms_network
+
+  backend:
+    build: ./backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+      - media_volume:/app/media
+      - static_volume:/app/static
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DB_NAME=hrms_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - SECRET_KEY=your-secret-key-here-change-in-production
+    depends_on:
+      - db
+    networks:
+      - hrms_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8080/api/v1
+    depends_on:
+      - backend
+    networks:
+      - hrms_network
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - hrms_network
+
+volumes:
+  postgres_data:
+  media_volume:
+  static_volume:
+
+networks:
+  hrms_network:
+    driver: bridge
