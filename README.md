@@ -61,34 +61,26 @@ A comprehensive HR Management System built with Django REST Framework backend an
 3. Set up frontend: `cd frontend && npm install`
 4. Run with Docker: `docker-compose up --build`
 
-## Detailed Setup Instructions
+#### Detailed Setup Instructions
 
-See individual README files in backend/ and frontend/ directories.
-
-
-# To run your Django backend, follow these steps in your terminal:
-
-# Activate your virtual environment (if you have one):
-source venv/bin/activate
-
-# Navigate to your backend directory:
-cd backend
-
-# Apply migrations (if not already done):
-python manage.py migrate
-
-# Start the Django development server:
-python manage.py runserver
-Your backend will now be running at http://localhost:8000.
-
-# If you need to run it with Docker, use:
-docker-compose up backend
-
-## frontend
-cd /home/sakshi/vsCode/MajorProject/frontend && npm run dev
-
-# Let me access the SQLite database directly using the sqlite3 command:
+- See individual README files in backend/ and frontend/ directories.
 
 
-cd /home/sakshi/vsCode/MajorProject/backend && sqlite3 db.sqlite3
+#### To run your Django backend, follow these steps in your terminal:
+
+#### Activate your virtual environment (if you have one):
+- source venv/bin/activate
+
+#### Navigate to your backend directory:
+- cd backend
+
+#### Apply migrations (if not already done):
+- python manage.py migrate
+
+#### Start the Django development server:
+- python manage.py runserver
+- Your backend will now be running at http://localhost:8000.
+
+#### If you need to run it with Docker, use:
+- docker-compose up backend
 

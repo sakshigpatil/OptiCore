@@ -25,9 +25,10 @@ urlpatterns = [
     path('api/v1/', include('apps.employees.urls')),
     path('api/v1/', include('apps.projects.urls')),
     path('api/v1/', include('apps.attendance.urls')),
-    path('api/v1/', include('apps.leaves.urls')),
-    path('api/v1/', include('apps.payroll.urls')),
+    path('api/v1/leaves/', include('apps.leaves.urls')),
+    path('api/v1/payroll/', include('apps.payroll.urls')),
     path('api/v1/', include('apps.notifications.urls')),
+    path('api/v1/chatbot/', include('apps.chatbot.urls')),
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

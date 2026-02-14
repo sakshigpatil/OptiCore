@@ -41,6 +41,7 @@ LOCAL_APPS = [
     'apps.leaves',
     'apps.payroll',
     'apps.notifications',
+    'apps.chatbot',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -230,3 +231,6 @@ LOGGING = {
         },
     },
 }
+
+# AI Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', None)

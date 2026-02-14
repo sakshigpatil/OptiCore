@@ -17,7 +17,7 @@ django.setup()
 from django.contrib.auth import get_user_model
 from apps.employees.models import Department, Employee
 from apps.leaves.models import LeaveType, LeaveRequest
-from apps.payroll.models import PayrollRecord
+# from apps.payroll.models import PayrollRecord  # Commented out as not used
 from apps.attendance.models import Attendance
 from apps.projects.models import Project, Task
 from apps.notifications.models import Notification

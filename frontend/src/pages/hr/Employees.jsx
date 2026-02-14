@@ -82,12 +82,21 @@ const Employees = () => {
     }
   };
 
-  const formatDepartment = (department) => {
-    return department?.name || 'No Department';
+  const formatDepartment = (department_name) => {
+    return department_name || 'No Department';
   };
 
-  const formatManagerName = (manager) => {
-    return manager ? `${manager.user?.first_name || ''} ${manager.user?.last_name || ''}`.trim() : 'No Manager';
+  const formatManagerName = (manager_name) => {
+    return manager_name || 'No Manager';
+  };
+
+  const formatRole = (role) => {
+    const roleMap = {
+      'ADMIN_HR': 'HR Admin',
+      'MANAGER': 'Manager',
+      'EMPLOYEE': 'Employee'
+    };
+    return roleMap[role] || role || 'Employee';
   };
 
   const handleDeleteEmployee = async (employeeId, employeeName) => {
@@ -271,14 +280,14 @@ const Employees = () => {
                               {employee.user_details?.first_name || employee.user?.first_name || ''} {employee.user_details?.last_name || employee.user?.last_name || ''}
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                              {employee.user_details?.role || employee.user?.role || 'EMPLOYEE'}
+                              {formatRole(employee.user_details?.role || employee.user?.role)}
                             </div>
                           </div>
                         </td>
                         <td>{employee.user_details?.email || employee.user?.email || 'No Email'}</td>
-                        <td>{formatDepartment(employee.department)}</td>
+                        <td>{formatDepartment(employee.department_name)}</td>
                         <td>{employee.position}</td>
-                        <td>{formatManagerName(employee.manager)}</td>
+                        <td>{formatManagerName(employee.manager_name)}</td>
                         <td>
                           {employee.salary ? `$${parseFloat(employee.salary).toLocaleString()}` : 'N/A'}
                         </td>

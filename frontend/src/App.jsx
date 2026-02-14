@@ -42,7 +42,7 @@ import RoleBasedRoute from './components/auth/RoleBasedRoute'
 
 function App() {
   const dispatch = useDispatch()
-  const { token, isAuthenticated, user } = useSelector((state) => state.auth)
+  const { token, isAuthenticated, user, isLoading } = useSelector((state) => state.auth)
 
   useEffect(() => {
     // Clear invalid tokens on app startup
@@ -109,9 +109,7 @@ function App() {
           path="/login"
           element={
             !isAuthenticated ? (
-              <AuthLayout>
-                <Login />
-              </AuthLayout>
+              <Login />
             ) : (
               <Navigate to="/" replace />
             )
@@ -143,12 +141,21 @@ function App() {
           <Route
             index
             element={
-              user?.role === 'ADMIN_HR' ? (
+              isLoading ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                  <div className="spinner-border" role="status">
+                    <span className="sr-only">Loading...</span>
+                  </div>
+                  <p style={{ marginTop: '1rem' }}>Loading user data...</p>
+                </div>
+              ) : user?.role === 'ADMIN_HR' ? (
                 <Navigate to="/hr/dashboard" replace />
               ) : user?.role === 'MANAGER' ? (
                 <Navigate to="/manager/dashboard" replace />
-              ) : (
+              ) : user?.role === 'EMPLOYEE' ? (
                 <Navigate to="/employee/dashboard" replace />
+              ) : (
+                <Navigate to="/login" replace />
               )
             }
           />
@@ -188,21 +195,28 @@ function App() {
           />
 
           {/* Employee Routes */}
-          <Route path="employee/*">
-            <Route
-              path="*"
-              element={
-                <Routes>
-                  <Route path="dashboard" element={<EmployeeDashboard />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="tasks" element={<Tasks />} />
-                  <Route path="attendance" element={<MyAttendance />} />
-                  <Route path="leaves" element={<MyLeaves />} />
-                  <Route path="payslip" element={<Payslip />} />
-                </Routes>
-              }
-            />
-          </Route>
+          <Route
+            path="employee/*"
+            element={
+              // Redirect HR admins and managers to their own dashboards
+              user?.role === 'ADMIN_HR' ? (
+                <Navigate to="/hr/dashboard" replace />
+              ) : user?.role === 'MANAGER' ? (
+                <Navigate to="/manager/dashboard" replace />
+              ) : (
+                <RoleBasedRoute allowedRoles={['EMPLOYEE']}>
+                  <Routes>
+                    <Route path="dashboard" element={<EmployeeDashboard />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="tasks" element={<Tasks />} />
+                    <Route path="attendance" element={<MyAttendance />} />
+                    <Route path="leaves" element={<MyLeaves />} />
+                    <Route path="payslip" element={<Payslip />} />
+                  </Routes>
+                </RoleBasedRoute>
+              )
+            }
+          />
         </Route>
 
         {/* Error Routes */}

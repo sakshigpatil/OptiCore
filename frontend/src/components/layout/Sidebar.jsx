@@ -1,6 +1,18 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import {
+  ChartBarIcon,
+  UsersIcon,
+  CheckCircleIcon,
+  BuildingOfficeIcon,
+  CalendarIcon,
+  DocumentTextIcon,
+  CurrencyDollarIcon,
+  UserIcon,
+  ClipboardDocumentListIcon,
+  BeakerIcon
+} from '@heroicons/react/24/outline';
 import '../../styles/enhanced-sidebar.css';
 
 const Sidebar = () => {
@@ -11,30 +23,30 @@ const Sidebar = () => {
   const getMenuItems = () => {
     if (user?.role === 'ADMIN_HR') {
       return [
-        { path: '/hr/dashboard', label: 'HR Dashboard', icon: '📊' },
-        { path: '/hr/employees', label: 'Employees', icon: '👥' },
-        { path: '/hr/employee-approvals', label: 'Employee Approvals', icon: '✅' },
-        { path: '/hr/departments', label: 'Departments', icon: '🏢' },
-        { path: '/hr/attendance', label: 'Attendance', icon: '📅' },
-        { path: '/hr/leaves', label: 'Leave Requests', icon: '🏖️' },
-        { path: '/hr/payroll', label: 'Payroll', icon: '💰' },
+        { path: '/hr/dashboard', label: 'HR Dashboard', icon: ChartBarIcon },
+        { path: '/hr/employees', label: 'Employees', icon: UsersIcon },
+        { path: '/hr/employee-approvals', label: 'Employee Approvals', icon: CheckCircleIcon },
+        { path: '/hr/departments', label: 'Departments', icon: BuildingOfficeIcon },
+        { path: '/hr/attendance', label: 'Attendance', icon: CalendarIcon },
+        { path: '/hr/leaves', label: 'Leave Requests', icon: DocumentTextIcon },
+        { path: '/hr/payroll', label: 'Payroll', icon: CurrencyDollarIcon },
       ];
     } else if (user?.role === 'MANAGER') {
       return [
-        { path: '/manager/dashboard', label: 'Manager Dashboard', icon: '📊' },
-        { path: '/manager/employees', label: 'My Team', icon: '👥' },
-        { path: '/manager/leaves', label: 'Leave Approvals', icon: '✅' },
-        { path: '/manager/attendance', label: 'Team Attendance', icon: '📅' },
-        { path: '/manager/employee-approvals', label: 'Employee Requests', icon: '🏖️' },
+        { path: '/manager/dashboard', label: 'Manager Dashboard', icon: ChartBarIcon },
+        { path: '/manager/employees', label: 'My Team', icon: UsersIcon },
+        { path: '/manager/leaves', label: 'Leave Approvals', icon: CheckCircleIcon },
+        { path: '/manager/attendance', label: 'Team Attendance', icon: CalendarIcon },
+        { path: '/manager/employee-approvals', label: 'Employee Requests', icon: DocumentTextIcon },
       ];
     } else {
       return [
-        { path: '/employee/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/employee/profile', label: 'Profile', icon: '👤' },
-        { path: '/employee/tasks', label: 'Tasks', icon: '📋' },
-        { path: '/employee/attendance', label: 'My Attendance', icon: '📅' },
-        { path: '/employee/leaves', label: 'My Leaves', icon: '🏖️' },
-        { path: '/employee/payslip', label: 'Payslip', icon: '💰' },
+        { path: '/employee/dashboard', label: 'Dashboard', icon: ChartBarIcon },
+        { path: '/employee/profile', label: 'Profile', icon: UserIcon },
+        { path: '/employee/tasks', label: 'Tasks', icon: ClipboardDocumentListIcon },
+        { path: '/employee/attendance', label: 'My Attendance', icon: CalendarIcon },
+        { path: '/employee/leaves', label: 'My Leaves', icon: DocumentTextIcon },
+        { path: '/employee/payslip', label: 'Payslip', icon: CurrencyDollarIcon },
       ];
     }
   };
@@ -49,14 +61,19 @@ const Sidebar = () => {
     <aside className="sidebar">
       <nav className="sidebar-nav">
         <ul className="nav-menu">
-          {menuItems.map((item) => (
-            <li key={item.path} className={`nav-item ${isActive(item.path) ? 'active' : ''}`}>
-              <Link to={item.path} className="nav-link">
-                <span className="nav-icon">{item.icon}</span>
-                <span className="nav-label">{item.label}</span>
-              </Link>
-            </li>
-          ))}
+          {menuItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <li key={item.path} className={`nav-item ${isActive(item.path) ? 'active' : ''}`}>
+                <Link to={item.path} className="nav-link">
+                  <span className="nav-icon">
+                    <IconComponent className="w-5 h-5" />
+                  </span>
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       {user && (

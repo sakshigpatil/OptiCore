@@ -1,16 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar
+} from 'recharts';
+import {
+  UsersIcon,
+  UserPlusIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  CurrencyDollarIcon,
+  PlusIcon,
+  CheckCircleIcon,
+  DocumentTextIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  ChatBubbleLeftRightIcon
+} from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
+import Chatbot from '../../components/common/Chatbot';
+
+const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
+
+// Department color mapping
+const DEPARTMENT_COLORS = {
+  'HR': '#8B5CF6',           // Purple
+  'Human Resources': '#8B5CF6', // Purple
+  'Engineering': '#4F46E5',  // Blue
+  'IT': '#4F46E5',          // Blue
+  'Sales': '#F59E0B',       // Yellow
+  'Marketing': '#F59E0B',   // Yellow
+  'IT Support': '#10B981',  // Green
+  'Support': '#10B981',     // Green
+  'Operations': '#06B6D4',  // Cyan
+  'Finance': '#EF4444',     // Red
+  'Administration': '#64748B' // Gray
+};
+
+const getDepartmentColor = (departmentName) => {
+  return DEPARTMENT_COLORS[departmentName] || COLORS[Math.floor(Math.random() * COLORS.length)];
+};
+
+function MetricCard({ title, value, subtitle, icon: Icon, colorClass, trend, trendValue }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <Icon className={`h-5 w-5 ${colorClass}`} />
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+          </div>
+          <div className="mt-3">
+            <div className={`text-3xl font-bold ${colorClass}`}>
+              {typeof value === 'number' && value > 999 
+                ? `${(value / 1000).toFixed(1)}k` 
+                : value
+              }
+            </div>
+            {subtitle && (
+              <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+            )}
+            {trend && (
+              <div className="flex items-center mt-2">
+                {trend === 'up' ? (
+                  <ArrowTrendingUpIcon className="h-4 w-4 text-green-500 mr-1" />
+                ) : (
+                  <ArrowTrendingDownIcon className="h-4 w-4 text-red-500 mr-1" />
+                )}
+                <span className={`text-sm ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                  {trendValue}% from last month
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuickActionButton({ icon: Icon, label, onClick, primary = false }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+        primary
+          ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function ActivityItem({ activity }) {
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      return `${Math.floor(diffInHours * 60)} minutes ago`;
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)} hours ago`;
+    } else {
+      return `${Math.floor(diffInHours / 24)} days ago`;
+    }
+  };
+
+  const getActivityIcon = (action) => {
+    if (action?.includes('joined') || action?.includes('registered')) {
+      return <UserPlusIcon className="h-4 w-4 text-green-600" />;
+    }
+    if (action?.includes('leave') || action?.includes('request')) {
+      return <CalendarIcon className="h-4 w-4 text-orange-600" />;
+    }
+    if (action?.includes('approved') || action?.includes('accepted')) {
+      return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
+    }
+    return <UsersIcon className="h-4 w-4 text-indigo-600" />;
+  };
+
+  return (
+    <div className="flex items-start space-x-3 p-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-indigo-50 rounded-lg transition-all duration-200 cursor-pointer group">
+      <div className="flex-shrink-0">
+        <div className="h-10 w-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+          {getActivityIcon(activity.action)}
+        </div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-gray-900 leading-relaxed">
+          <span className="font-semibold text-indigo-700">{activity.actor}</span>{' '}
+          <span className="text-gray-700">{activity.action}</span>
+          {activity.target && (
+            <span className="text-gray-600 font-medium"> • {activity.target}</span>
+          )}
+        </p>
+        <div className="flex items-center mt-2">
+          <ClockIcon className="h-3 w-3 text-gray-400 mr-1" />
+          <p className="text-xs text-gray-500 font-medium">
+            {formatTimestamp(activity.timestamp)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const HRDashboard = () => {
-  const [dashboardData, setDashboardData] = useState({
-    totalEmployees: 0,
-    activeProjects: 0,
-    pendingLeaves: 0,
-    monthlyPayroll: 0,
-    pendingApprovals: 0
-  });
+  const navigate = useNavigate();
+  const [summary, setSummary] = useState(null);
+  const [attendanceTrend, setAttendanceTrend] = useState([]);
+  const [departmentData, setDepartmentData] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -19,121 +179,348 @@ const HRDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+      console.log('🔄 Fetching dashboard data...');
+
       // Fetch all dashboard data in parallel
-      const [
-        employeesResponse,
-        projectsResponse,
-        leavesResponse,
-        payrollResponse,
-        approvalsResponse
-      ] = await Promise.all([
-        api.get('/employees/').catch(() => ({ data: [] })),
-        api.get('/projects/').catch(() => ({ data: [] })),
-        api.get('/leave-requests/').catch(() => ({ data: [] })),
-        api.get('/payroll/').catch(() => ({ data: [] })),
-        api.get('/users/').catch(() => ({ data: [] }))
+      const [summaryRes, trendRes, deptRes, activitiesRes] = await Promise.all([
+        api.get('/dashboard/summary/'),
+        api.get('/dashboard/attendance-trend/'),
+        api.get('/dashboard/department-distribution/'),
+        api.get('/dashboard/recent-activities/')
       ]);
 
-      // Calculate metrics from real data
-      const totalEmployees = employeesResponse.data?.length || 0;
-      const activeProjects = projectsResponse.data?.filter(p => p.status === 'ACTIVE' || !p.status)?.length || projectsResponse.data?.length || 0;
-      const pendingLeaves = leavesResponse.data?.filter(l => l.status === 'PENDING')?.length || 0;
-      const monthlyPayroll = payrollResponse.data?.reduce((sum, record) => sum + (record.net_salary || 0), 0) || 0;
-      const pendingApprovals = Array.isArray(approvalsResponse.data) 
-        ? approvalsResponse.data.filter(u => u.approval_status === 'PENDING').length 
-        : 0;
+      console.log('✅ Dashboard data loaded:', {
+        summary: summaryRes,
+        trend: trendRes,
+        departments: deptRes,
+        activities: activitiesRes
+      });
 
-      setDashboardData({
-        totalEmployees,
-        activeProjects,
-        pendingLeaves,
-        monthlyPayroll,
-        pendingApprovals
-      });
+      setSummary(summaryRes);
+      setAttendanceTrend(Array.isArray(trendRes) ? trendRes : []);
+      setDepartmentData(Array.isArray(deptRes) ? deptRes : []);
+      setActivities(Array.isArray(activitiesRes) ? activitiesRes : []);
+
+    } catch (error) {
+      console.error('❌ Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
       
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        config: err.config?.url
+      // Set fallback data
+      setSummary({
+        total_employees: 0,
+        present_today: 0,
+        pending_leaves: 0,
+        pending_approvals: 0,
+        payroll_this_month: 0
       });
-      // Keep default values on error
+      setAttendanceTrend([]);
+      setDepartmentData([]);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleQuickAction = (action) => {
+    switch (action) {
+      case 'add-employee':
+        navigate('/hr/employees');
+        break;
+      case 'approvals':
+        navigate('/hr/employee-approvals');
+        break;
+      case 'attendance':
+        navigate('/hr/attendance');
+        break;
+      case 'payroll':
+        navigate('/hr/payroll');
+        break;
+      default:
+        toast.success(`${action} clicked - Feature coming soon!`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading HR Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">HR Dashboard</h1>
-      </div>
-      <div className="page-content">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ color: '#3498db', marginBottom: '0.5rem' }}>Total Employees</h3>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50' }}>
-                {loading ? '...' : dashboardData.totalEmployees}
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">HR Dashboard</h1>
+              <p className="mt-2 text-gray-600">
+                Welcome back! Here's what's happening at your company today.
+              </p>
             </div>
-          </div>
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ color: '#27ae60', marginBottom: '0.5rem' }}>Active Projects</h3>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50' }}>
-                {loading ? '...' : dashboardData.activeProjects}
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ color: '#f39c12', marginBottom: '0.5rem' }}>Pending Leaves</h3>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50' }}>
-                {loading ? '...' : dashboardData.pendingLeaves}
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ color: '#e74c3c', marginBottom: '0.5rem' }}>This Month Payroll</h3>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50' }}>
-                {loading ? '...' : `$${dashboardData.monthlyPayroll.toLocaleString()}`}
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ color: '#9b59b6', marginBottom: '0.5rem' }}>Pending Approvals</h3>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50' }}>
-                {loading ? '...' : dashboardData.pendingApprovals}
-              </div>
-              {!loading && dashboardData.pendingApprovals > 0 && (
-                <Link 
-                  to="/hr/employee-approvals" 
-                  style={{ 
-                    color: '#9b59b6', 
-                    textDecoration: 'none', 
-                    fontSize: '0.875rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  View Requests →
-                </Link>
-              )}
+            <div className="flex items-center space-x-3">
+              <QuickActionButton
+                icon={PlusIcon}
+                label="Add Employee"
+                onClick={() => handleQuickAction('add-employee')}
+                primary
+              />
+              <QuickActionButton
+                icon={CheckCircleIcon}
+                label="Approvals"
+                onClick={() => handleQuickAction('approvals')}
+              />
+              <QuickActionButton
+                icon={ClockIcon}
+                label="Attendance"
+                onClick={() => handleQuickAction('attendance')}
+              />
+              <QuickActionButton
+                icon={CurrencyDollarIcon}
+                label="Payroll"
+                onClick={() => handleQuickAction('payroll')}
+              />
             </div>
           </div>
         </div>
-        <div className="card">
-          <div className="card-header">Recent Activities</div>
-          <div className="card-body">
-            <p>Welcome to the HR Management Dashboard. Here you can manage employees, track attendance, process leaves, and handle payroll.</p>
+
+        {/* Today's Quick Summary */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-6 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold mb-2">📈 Today's Summary</h2>
+              <div className="flex items-center space-x-6 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                  <span>{summary?.present_today || 0} Present</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <span>{summary?.on_leave_today || 0} On Leave</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <span>{(summary?.total_employees || 0) - (summary?.present_today || 0) - (summary?.on_leave_today || 0)} Absent</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold">{summary?.total_employees || 0}</div>
+              <div className="text-sm opacity-90">Total Employees</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Metrics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <MetricCard
+            title="Total Employees"
+            value={summary?.total_employees || 0}
+            subtitle="Active employees"
+            icon={UsersIcon}
+            colorClass="text-indigo-600"
+            trend="up"
+            trendValue="12"
+          />
+          <MetricCard
+            title="Present Today"
+            value={summary?.present_today || 0}
+            subtitle={`Out of ${summary?.total_employees || 0}`}
+            icon={UserPlusIcon}
+            colorClass="text-green-600"
+            trend="up"
+            trendValue="5"
+          />
+          <MetricCard
+            title="Pending Leaves"
+            value={summary?.pending_leaves || 0}
+            subtitle="Awaiting approval"
+            icon={CalendarIcon}
+            colorClass="text-orange-500"
+          />
+          <MetricCard
+            title="Pending Approvals"
+            value={summary?.pending_approvals || 0}
+            subtitle="New registrations"
+            icon={ExclamationCircleIcon}
+            colorClass="text-red-600"
+          />
+          <MetricCard
+            title="Monthly Payroll"
+            value={`$${(summary?.payroll_this_month || 0).toLocaleString()}`}
+            subtitle="This month"
+            icon={CurrencyDollarIcon}
+            colorClass="text-purple-600"
+            trend="up"
+            trendValue="8"
+          />
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Attendance Trend Chart */}
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Attendance Trend</h3>
+                <p className="text-sm text-gray-600">Last 30 days overview</p>
+              </div>
+              <ChartBarIcon className="h-6 w-6 text-gray-400" />
+            </div>
+            <div style={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={attendanceTrend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12 }}
+                    stroke="#6b7280"
+                  />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="present"
+                    stroke="#10B981"
+                    strokeWidth={2}
+                    dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                    name="Present"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="absent"
+                    stroke="#EF4444"
+                    strokeWidth={2}
+                    dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                    name="Absent"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="on_leave"
+                    stroke="#F59E0B"
+                    strokeWidth={2}
+                    dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
+                    name="On Leave"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Department Distribution */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Department Distribution</h3>
+                <p className="text-sm text-gray-600">Employee count by department</p>
+              </div>
+            </div>
+            <div style={{ height: 200 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={departmentData.map(d => ({ name: d.department, value: d.count }))}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    innerRadius={30}
+                    paddingAngle={2}
+                  >
+                    {departmentData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getDepartmentColor(entry.department)} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-6 space-y-3">
+              {departmentData.map((dept, index) => (
+                <div key={dept.department} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-4 h-4 rounded-full shadow-sm"
+                      style={{ backgroundColor: getDepartmentColor(dept.department) }}
+                    />
+                    <span className="text-gray-700 font-medium">{dept.department}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-gray-900">{dept.count}</span>
+                    <span className="text-xs text-gray-500">emp{dept.count !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activities */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Recent Activities</h3>
+              <p className="text-sm text-gray-600">Latest actions and updates</p>
+            </div>
+            <button
+              onClick={fetchDashboardData}
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium px-3 py-1 rounded-lg hover:bg-indigo-50 transition-all duration-200"
+            >
+              Refresh
+            </button>
+          </div>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {activities.length === 0 ? (
+              <div className="text-center py-8">
+                <DocumentTextIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No recent activities</p>
+              </div>
+            ) : (
+              activities.map((activity, index) => (
+                <ActivityItem key={index} activity={activity} />
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      {/* Floating Chatbot Button */}
+      {!isChatbotOpen && (
+        <button
+          onClick={() => setIsChatbotOpen(true)}
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 z-40 group"
+          title="Open HR Assistant"
+        >
+          <ChatBubbleLeftRightIcon className="h-7 w-7" />
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+            AI
+          </span>
+        </button>
+      )}
+
+      {/* Chatbot Component */}
+      <Chatbot isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
     </div>
   );
 };

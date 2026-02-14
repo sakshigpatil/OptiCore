@@ -1,13 +1,18 @@
 /* Enhanced Sidebar Styles */
 
+/* Override any global text colors for sidebar */
+.sidebar * {
+  color: inherit !important;
+}
+
 .sidebar {
   background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
   width: 280px;
-  height: 100vh;
+  height: calc(100vh - 70px);
   position: fixed;
   left: 0;
-  top: 0;
-  z-index: 1000;
+  top: 70px;
+  z-index: 999;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
@@ -55,7 +60,7 @@
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
-  color: #cbd5e1;
+  color: #cbd5e1 !important;
   text-decoration: none;
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -65,14 +70,14 @@
 
 .nav-item:hover .nav-link {
   background: rgba(102, 126, 234, 0.1);
-  color: #e2e8f0;
+  color: #e2e8f0 !important;
   transform: translateX(8px);
   padding-left: 2rem;
 }
 
 .nav-item.active .nav-link {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  color: #ffffff;
+  color: #ffffff !important;
   font-weight: 600;
 }
 
@@ -94,11 +99,13 @@
 .nav-label {
   font-size: 0.95rem;
   letter-spacing: 0.025em;
+  color: inherit !important;
 }
 
 /* User Info Section */
 .user-info {
-  margin: 1.5rem;
+  margin: 1.5rem 1.5rem 1rem 1.5rem;
+  margin-top: auto;
   padding: 1.5rem;
   background: rgba(51, 65, 85, 0.6);
   border-radius: 16px;
@@ -144,14 +151,14 @@
 .user-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #f8fafc;
+  color: #f8fafc !important;
   margin-bottom: 0.3rem;
   letter-spacing: 0.025em;
 }
 
 .user-role {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: #94a3b8 !important;
   text-transform: capitalize;
   letter-spacing: 0.05em;
 }
@@ -206,6 +213,28 @@
 
 .sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(102, 126, 234, 0.7);
+}
+
+/* Force light text on dark background - override all conflicting styles */
+.sidebar .nav-link,
+.sidebar .nav-link span,
+.sidebar .nav-label,
+.sidebar .nav-icon {
+  color: #cbd5e1 !important;
+}
+
+.sidebar .nav-item:hover .nav-link,
+.sidebar .nav-item:hover .nav-link span,
+.sidebar .nav-item:hover .nav-label,
+.sidebar .nav-item:hover .nav-icon {
+  color: #e2e8f0 !important;
+}
+
+.sidebar .nav-item.active .nav-link,
+.sidebar .nav-item.active .nav-link span,
+.sidebar .nav-item.active .nav-label,
+.sidebar .nav-item.active .nav-icon {
+  color: #ffffff !important;
 }
 
 /* Responsive Design */

@@ -40,7 +40,18 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def clock_in(self, request):
         """Clock in endpoint"""
-        serializer = ClockInSerializer(data=request.data, context={'request': request})
+        # Get current user's employee
+        if not hasattr(request.user, 'employee'):
+            return Response({
+                'success': False,
+                'message': 'User does not have an employee profile'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Add employee ID to request data
+        data = request.data.copy()
+        data['employee'] = request.user.employee.id
+        
+        serializer = ClockInSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             try:
                 attendance = serializer.save()
@@ -64,7 +75,18 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def clock_out(self, request):
         """Clock out endpoint"""
-        serializer = ClockOutSerializer(data=request.data, context={'request': request})
+        # Get current user's employee
+        if not hasattr(request.user, 'employee'):
+            return Response({
+                'success': False,
+                'message': 'User does not have an employee profile'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Add employee ID to request data
+        data = request.data.copy()
+        data['employee'] = request.user.employee.id
+        
+        serializer = ClockOutSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             try:
                 attendance = serializer.save()
@@ -88,12 +110,18 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def current_status(self, request):
         """Get current attendance status for employee"""
+        # Get employee_id from query params or use current user's employee
         employee_id = request.query_params.get('employee_id')
+        
+        # If no employee_id provided, try to get from current user
         if not employee_id:
-            return Response({
-                'success': False,
-                'message': 'Employee ID is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            if hasattr(request.user, 'employee'):
+                employee_id = request.user.employee.id
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'User does not have an employee profile'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             today = date.today()
@@ -124,8 +152,17 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
         
         queryset = self.get_queryset()
         
-        if employee_id:
-            queryset = queryset.filter(employee_id=employee_id)
+        # If no employee_id provided, use current user's employee
+        if not employee_id:
+            if hasattr(request.user, 'employee'):
+                employee_id = request.user.employee.id
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'User does not have an employee profile'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        queryset = queryset.filter(employee_id=employee_id)
         
         if start_date:
             queryset = queryset.filter(date__gte=start_date)
@@ -152,6 +189,16 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         
+        # If no employee_id provided, use current user's employee
+        if not employee_id:
+            if hasattr(request.user, 'employee'):
+                employee_id = request.user.employee.id
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'User does not have an employee profile'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
         # Default to current month if no dates provided
         if not start_date or not end_date:
             today = date.today()
@@ -162,9 +209,7 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
                 end_date = date(today.year, today.month + 1, 1) - timedelta(days=1)
         
         queryset = self.get_queryset().filter(date__range=[start_date, end_date])
-        
-        if employee_id:
-            queryset = queryset.filter(employee_id=employee_id)
+        queryset = queryset.filter(employee_id=employee_id)
         
         # Calculate statistics
         stats = queryset.aggregate(
@@ -178,7 +223,7 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
         
         # Calculate derived statistics
         stats['average_hours'] = (
-            stats['total_hours'] / stats['total_days'] 
+            (stats['total_hours'] or Decimal('0')) / stats['total_days'] 
             if stats['total_days'] > 0 else Decimal('0')
         )
         stats['attendance_percentage'] = (

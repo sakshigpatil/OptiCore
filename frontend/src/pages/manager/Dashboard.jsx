@@ -44,7 +44,7 @@ const ManagerDashboard = () => {
       }
 
       try {
-        const leavesRes = await api.get('/leave-requests/');
+        const leavesRes = await api.get('/leaves/leave-requests/');
         leaveRequests = leavesRes.results || leavesRes || [];
       } catch (e) {
         console.warn('Could not fetch leave requests:', e.message);

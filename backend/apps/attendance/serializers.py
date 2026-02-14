@@ -4,11 +4,25 @@ from datetime import datetime, date
 from .models import AttendanceRecord, AttendanceSettings
 
 
+class EmployeeBasicSerializer(serializers.Serializer):
+    """Basic employee info for attendance records"""
+    employee_id = serializers.CharField()
+    user = serializers.SerializerMethodField()
+    
+    def get_user(self, obj):
+        return {
+            'id': obj.user.id,
+            'first_name': obj.user.first_name,
+            'last_name': obj.user.last_name,
+            'email': obj.user.email
+        }
+
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     """Serializer for AttendanceRecord model"""
     
     employee_name = serializers.CharField(source='employee.user.get_full_name', read_only=True)
-    employee_id = serializers.CharField(source='employee.employee_id', read_only=True)
+    employee_id_field = serializers.CharField(source='employee.employee_id', read_only=True)
+    employee = EmployeeBasicSerializer(read_only=True)
     is_clocked_in = serializers.BooleanField(read_only=True)
     working_duration = serializers.FloatField(read_only=True)
     clock_in_display = serializers.SerializerMethodField()
@@ -17,7 +31,7 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = AttendanceRecord
         fields = [
-            'id', 'employee', 'employee_name', 'employee_id', 'date',
+            'id', 'employee', 'employee_name', 'employee_id_field', 'date',
             'clock_in_time', 'clock_out_time', 'total_hours', 'break_duration',
             'status', 'notes', 'location', 'ip_address', 'is_overtime',
             'overtime_hours', 'is_clocked_in', 'working_duration',

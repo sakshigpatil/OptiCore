@@ -1,0 +1,8 @@
+#### frontend
+- cd /home/sakshi/vsCode/MajorProject/frontend && npm run dev
+
+#### Let me access the SQLite database directly using the sqlite3 command:
+
+
+- cd /home/sakshi/vsCode/MajorProject/backend && sqlite3 db.sqlite3
+

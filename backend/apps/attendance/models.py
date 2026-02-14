@@ -94,6 +94,13 @@ class AttendanceRecord(models.Model):
         if self.is_clocked_in:
             raise ValueError("Employee is already clocked in")
         
+        # If employee had completed work day and wants to clock in again,
+        # reset the record for a new session
+        if self.clock_in_time and self.clock_out_time:
+            self.clock_out_time = None  # Clear previous clock out
+            self.total_hours = None
+            self.overtime_hours = 0  # Reset to 0, not None (field doesn't allow NULL)
+        
         self.clock_in_time = timestamp or timezone.now()
         self.location = location
         self.ip_address = ip_address

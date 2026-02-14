@@ -60,7 +60,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         """Return appropriate serializer based on action"""
         if self.action == 'create':
             return EmployeeCreateSerializer
-        elif self.action in ['my_profile', 'update_profile']:
+        elif self.action == 'update_profile':
             return EmployeeProfileSerializer
         return EmployeeSerializer
     
