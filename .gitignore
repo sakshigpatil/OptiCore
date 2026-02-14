@@ -70,7 +70,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-
+info.txt
 # PyBuilder
 target/
 
@@ -295,5 +295,3 @@ yarn.lock
 .vscode/tasks.json
 
 
-
-.info.txt
