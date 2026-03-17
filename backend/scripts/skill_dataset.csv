@@ -1,0 +1,5 @@
+name,role,skills
+Rahul,Backend Developer,"Python;Django;REST APIs;PostgreSQL;Celery"
+Anita,Backend Developer,"Python;Flask;REST APIs;Docker;PostgreSQL"
+Suresh,Frontend Developer,"JavaScript;React;HTML;CSS;TypeScript"
+Priya,DevOps Engineer,"Docker;Kubernetes;CI/CD;Terraform;Linux"
