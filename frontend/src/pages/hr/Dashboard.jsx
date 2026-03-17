@@ -32,7 +32,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
-import Chatbot from '../../components/common/Chatbot';
 
 const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
 
@@ -170,7 +169,7 @@ const HRDashboard = () => {
   const [departmentData, setDepartmentData] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  
 
   useEffect(() => {
     fetchDashboardData();
@@ -505,22 +504,7 @@ const HRDashboard = () => {
         </div>
       </div>
 
-      {/* Floating Chatbot Button */}
-      {!isChatbotOpen && (
-        <button
-          onClick={() => setIsChatbotOpen(true)}
-          className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 z-40 group"
-          title="Open HR Assistant"
-        >
-          <ChatBubbleLeftRightIcon className="h-7 w-7" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-            AI
-          </span>
-        </button>
-      )}
-
-      {/* Chatbot Component */}
-      <Chatbot isOpen={isChatbotOpen} onClose={() => setIsChatbotOpen(false)} />
+      {/* Chatbot archived - UI removed */}
     </div>
   );
 };

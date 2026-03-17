@@ -295,3 +295,7 @@ yarn.lock
 .vscode/tasks.json
 
 
+
+# ignore generated/static and uploaded files
+backend/staticfiles/
+backend/media/

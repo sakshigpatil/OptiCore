@@ -23,6 +23,7 @@ import Leaves from './pages/hr/Leaves'
 import Attendance from './pages/hr/Attendance'
 import Payroll from './pages/hr/Payroll'
 import EmployeeApprovals from './pages/hr/EmployeeApprovals'
+import SkillAnalysis from './pages/hr/SkillAnalysis'
 
 // Employee Pages
 import EmployeeDashboard from './pages/employee/Dashboard'
@@ -168,6 +169,7 @@ function App() {
                 <Routes>
                   <Route path="dashboard" element={<HRDashboard />} />
                   <Route path="employees" element={<Employees />} />
+                  <Route path="skill-analysis" element={<SkillAnalysis />} />
                   <Route path="departments" element={<Departments />} />
                   <Route path="leaves" element={<Leaves />} />
                   <Route path="attendance" element={<Attendance />} />

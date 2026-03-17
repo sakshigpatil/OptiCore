@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/v1/leaves/', include('apps.leaves.urls')),
     path('api/v1/payroll/', include('apps.payroll.urls')),
     path('api/v1/', include('apps.notifications.urls')),
-    path('api/v1/chatbot/', include('apps.chatbot.urls')),
+    # Chatbot app archived - routes removed
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

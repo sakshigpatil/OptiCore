@@ -68,11 +68,11 @@ A comprehensive HR Management System built with Django REST Framework backend an
 
 #### To run your Django backend, follow these steps in your terminal:
 
-#### Activate your virtual environment (if you have one):
-- source venv/bin/activate
-
 #### Navigate to your backend directory:
 - cd backend
+
+#### Activate your virtual environment (if you have one):
+- source venv/bin/activate
 
 #### Apply migrations (if not already done):
 - python manage.py migrate
