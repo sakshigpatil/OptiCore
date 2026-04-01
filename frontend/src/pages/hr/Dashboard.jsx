@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import {
   LineChart,
   Line,
@@ -180,30 +181,37 @@ const HRDashboard = () => {
       setLoading(true);
       console.log('🔄 Fetching dashboard data...');
 
-      // Fetch all dashboard data in parallel
-      const [summaryRes, trendRes, deptRes, activitiesRes] = await Promise.all([
-        api.get('/dashboard/summary/'),
-        api.get('/dashboard/attendance-trend/'),
-        api.get('/dashboard/department-distribution/'),
-        api.get('/dashboard/recent-activities/')
-      ]);
+      // Fetch analytics data from the new analytics endpoint
+      const analyticsData = await api.get('analytics/dashboard/');
 
-      console.log('✅ Dashboard data loaded:', {
-        summary: summaryRes,
-        trend: trendRes,
-        departments: deptRes,
-        activities: activitiesRes
+      console.log('✅ Analytics data loaded:', analyticsData);
+
+      const lastTrend = analyticsData.attendance_trends.slice(-1)[0] || {};
+
+      // Transform data for the dashboard components
+      setSummary({
+        total_employees: analyticsData.employee_stats.total_employees,
+        present_today: lastTrend.present || 0,
+        pending_leaves: analyticsData.leave_analytics.pending,
+        pending_approvals: analyticsData.leave_analytics.pending,
+        payroll_this_month: analyticsData.payroll_summary.this_month_payslips,
+        on_leave_today: lastTrend.half_day || 0
       });
 
-      setSummary(summaryRes);
-      setAttendanceTrend(Array.isArray(trendRes) ? trendRes : []);
-      setDepartmentData(Array.isArray(deptRes) ? deptRes : []);
-      setActivities(Array.isArray(activitiesRes) ? activitiesRes : []);
+      setAttendanceTrend(analyticsData.attendance_trends);
+      setDepartmentData(analyticsData.department_distribution.map(dept => ({
+        name: dept.department__name,
+        value: dept.count,
+        fill: getDepartmentColor(dept.department__name)
+      })));
+
+      // Set empty activities for now (can be enhanced later)
+      setActivities([]);
 
     } catch (error) {
       console.error('❌ Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
-      
+
       // Set fallback data
       setSummary({
         total_employees: 0,
@@ -236,6 +244,59 @@ const HRDashboard = () => {
         break;
       default:
         toast.success(`${action} clicked - Feature coming soon!`);
+    }
+  };
+
+  const handleExport = async (type, format = 'csv') => {
+    try {
+      toast.loading(`Exporting ${type} data...`, { id: 'export' });
+
+      let exportPath = '';
+      let filename = '';
+
+      switch (type) {
+        case 'employees':
+          exportPath = 'analytics/export/employees/';
+          filename = `employees.${format}`;
+          break;
+        case 'attendance':
+          exportPath = 'analytics/export/attendance/';
+          filename = `attendance.${format}`;
+          break;
+        default:
+          throw new Error('Unknown export type');
+      }
+
+      const envBaseUrl = import.meta.env.VITE_API_URL;
+      const defaultBaseUrl = 'http://127.0.0.1:8000/api/v1';
+      const apiBaseUrl = envBaseUrl && !envBaseUrl.includes('3000')
+        ? envBaseUrl
+        : defaultBaseUrl;
+      const exportUrl = `${apiBaseUrl.replace(/\/$/, '')}/${exportPath}`;
+      const token = localStorage.getItem('token');
+
+      console.log('⬇️ Export URL:', exportUrl);
+
+      const response = await axios.get(exportUrl, {
+        responseType: 'blob',
+        params: { file_format: format },
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`${type} data exported successfully!`, { id: 'export' });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export data', { id: 'export' });
     }
   };
 
@@ -284,6 +345,24 @@ const HRDashboard = () => {
                 label="Payroll"
                 onClick={() => handleQuickAction('payroll')}
               />
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleExport('employees', 'csv')}
+                  className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  title="Export Employees (CSV)"
+                >
+                  <DocumentTextIcon className="h-4 w-4" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  onClick={() => handleExport('employees', 'excel')}
+                  className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  title="Export Employees (Excel)"
+                >
+                  <DocumentTextIcon className="h-4 w-4" />
+                  <span>Export Excel</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -408,11 +487,11 @@ const HRDashboard = () => {
                   />
                   <Line
                     type="monotone"
-                    dataKey="on_leave"
+                    dataKey="half_day"
                     stroke="#F59E0B"
                     strokeWidth={2}
                     dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
-                    name="On Leave"
+                    name="Half Day"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -431,7 +510,7 @@ const HRDashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={departmentData.map(d => ({ name: d.department, value: d.count }))}
+                    data={departmentData}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
@@ -441,7 +520,7 @@ const HRDashboard = () => {
                     paddingAngle={2}
                   >
                     {departmentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getDepartmentColor(entry.department)} />
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
                   <Tooltip 
@@ -457,17 +536,17 @@ const HRDashboard = () => {
             </div>
             <div className="mt-6 space-y-3">
               {departmentData.map((dept, index) => (
-                <div key={dept.department} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <div key={dept.name} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-gray-50 transition-colors">
                   <div className="flex items-center space-x-3">
                     <div
                       className="w-4 h-4 rounded-full shadow-sm"
-                      style={{ backgroundColor: getDepartmentColor(dept.department) }}
+                      style={{ backgroundColor: dept.fill }}
                     />
-                    <span className="text-gray-700 font-medium">{dept.department}</span>
+                    <span className="text-gray-700 font-medium">{dept.name}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-gray-900">{dept.count}</span>
-                    <span className="text-xs text-gray-500">emp{dept.count !== 1 ? 's' : ''}</span>
+                    <span className="font-bold text-gray-900">{dept.value}</span>
+                    <span className="text-xs text-gray-500">emp{dept.value !== 1 ? 's' : ''}</span>
                   </div>
                 </div>
               ))}

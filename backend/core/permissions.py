@@ -1,6 +1,33 @@
 from rest_framework import permissions
 
 
+class HasRolePermission(permissions.BasePermission):
+    """Permission class that checks user roles"""
+
+    def has_permission(self, request, view):
+        user = request.user
+
+        # Allow access if user is authenticated and has a role
+        if not user.is_authenticated or not hasattr(user, 'role'):
+            return False
+
+        # Define role hierarchy
+        role_permissions = {
+            'ADMIN_HR': ['view_all_employees', 'view_all_departments', 'view_attendance_data',
+                        'view_leave_data', 'view_payroll_data', 'view_project_data',
+                        'view_analytics', 'export_data'],
+            'MANAGER': ['view_team_employees', 'view_department_stats', 'view_team_attendance',
+                       'view_team_leaves', 'view_basic_payroll', 'view_team_projects',
+                       'view_team_performance', 'export_team_data'],
+            'EMPLOYEE': ['view_own_profile', 'view_own_attendance', 'view_own_leaves',
+                        'view_basic_payroll', 'export_own_data']
+        }
+
+        # Store permissions on user for easy access
+        user.permissions = role_permissions.get(user.role, [])
+        return True
+
+
 class IsHROrAdmin(permissions.BasePermission):
     """Permission for HR and Admin users only"""
     

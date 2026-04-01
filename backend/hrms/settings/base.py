@@ -47,6 +47,7 @@ LOCAL_APPS = [
     'apps.payroll',
     'apps.notifications',
     'apps.ai',
+    'apps.analytics',
     # 'apps.chatbot',  # archived
 ]
 
