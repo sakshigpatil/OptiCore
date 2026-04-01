@@ -44,43 +44,43 @@ def create_employee_data():
     # Create employee profiles
     employees_data = [
         {
-            'username': 'admin',
+            'username': 'priya.sharma',
             'employee_id': 'EMP000',
-            'position': 'System Administrator',
+            'position': 'HR Administrator',
             'department': 'Human Resources',
             'salary': Decimal('120000.00'),
             'hire_date': date(2024, 1, 1)
         },
         {
-            'username': 'hr.manager',
+            'username': 'rajesh.kumar',
             'employee_id': 'EMP001',
-            'position': 'HR Manager',
-            'department': 'Human Resources',
-            'salary': Decimal('85000.00'),
-            'hire_date': date(2024, 2, 1)
-        },
-        {
-            'username': 'john.doe',
-            'employee_id': 'EMP002',
             'position': 'Engineering Manager',
             'department': 'Engineering',
             'salary': Decimal('95000.00'),
+            'hire_date': date(2024, 2, 1)
+        },
+        {
+            'username': 'arjun.patel',
+            'employee_id': 'EMP002',
+            'position': 'Finance Manager',
+            'department': 'Finance',
+            'salary': Decimal('90000.00'),
             'hire_date': date(2024, 1, 15)
         },
         {
-            'username': 'jane.smith',
+            'username': 'anita.singh',
             'employee_id': 'EMP003',
-            'position': 'Senior Software Engineer',
-            'department': 'Engineering',
-            'salary': Decimal('80000.00'),
+            'position': 'Marketing Specialist',
+            'department': 'Marketing',
+            'salary': Decimal('70000.00'),
             'hire_date': date(2024, 3, 1)
         },
         {
-            'username': 'mike.johnson',
+            'username': 'vikram.mehta',
             'employee_id': 'EMP004',
-            'position': 'Marketing Specialist',
-            'department': 'Marketing',
-            'salary': Decimal('60000.00'),
+            'position': 'Operations Coordinator',
+            'department': 'Operations',
+            'salary': Decimal('65000.00'),
             'hire_date': date(2024, 4, 1)
         },
     ]
@@ -116,29 +116,39 @@ def create_employee_data():
     
     # Set manager relationships
     try:
-        jane_emp = Employee.objects.get(employee_id='EMP003')
-        john_emp = Employee.objects.get(employee_id='EMP002')
-        jane_emp.manager = john_emp
-        jane_emp.save()
-        print(f"✅ Set manager: {jane_emp.user.get_full_name()} reports to {john_emp.user.get_full_name()}")
+        anita_emp = Employee.objects.get(employee_id='EMP003')
+        rajesh_emp = Employee.objects.get(employee_id='EMP001')
+        anita_emp.manager = rajesh_emp
+        anita_emp.save()
+        print(f"✅ Set manager: {anita_emp.user.get_full_name()} reports to {rajesh_emp.user.get_full_name()}")
         
         # Set department heads
         hr_dept = Department.objects.get(name='Human Resources')
         eng_dept = Department.objects.get(name='Engineering')
+        fin_dept = Department.objects.get(name='Finance')
         mkt_dept = Department.objects.get(name='Marketing')
+        ops_dept = Department.objects.get(name='Operations')
         
-        hr_manager = Employee.objects.get(employee_id='EMP001')
-        eng_manager = Employee.objects.get(employee_id='EMP002')
-        mkt_emp = Employee.objects.get(employee_id='EMP004')
+        hr_head = Employee.objects.get(employee_id='EMP000')
+        eng_head = Employee.objects.get(employee_id='EMP001')
+        fin_head = Employee.objects.get(employee_id='EMP002')
+        mkt_head = Employee.objects.get(employee_id='EMP003')
+        ops_head = Employee.objects.get(employee_id='EMP004')
         
-        hr_dept.head = hr_manager
+        hr_dept.head = hr_head
         hr_dept.save()
         
-        eng_dept.head = eng_manager
+        eng_dept.head = eng_head
         eng_dept.save()
         
-        mkt_dept.head = mkt_emp
+        fin_dept.head = fin_head
+        fin_dept.save()
+        
+        mkt_dept.head = mkt_head
         mkt_dept.save()
+        
+        ops_dept.head = ops_head
+        ops_dept.save()
         
         print(f"✅ Set department heads")
         
