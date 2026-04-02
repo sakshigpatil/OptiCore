@@ -8,6 +8,10 @@ const Employees = () => {
   const [error, setError] = useState(null);
   const [showTerminated, setShowTerminated] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDocsModal, setShowDocsModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [employeeToEdit, setEmployeeToEdit] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [managers, setManagers] = useState([]);
   const { user } = useSelector((state) => state.auth);
@@ -188,8 +192,18 @@ const Employees = () => {
   };
 
   const handleEditEmployee = (employeeId, employeeName) => {
-    // TODO: Implement edit functionality
-    alert(`Edit functionality for ${employeeName} will be implemented soon.`);
+    const employee = employees.find(emp => emp.id === employeeId);
+    if (!employee) {
+      alert(`Employee ${employeeName} not found.`);
+      return;
+    }
+    setEmployeeToEdit(employee);
+    setShowEditModal(true);
+  };
+
+  const handleManageDocuments = (employee) => {
+    setSelectedEmployee(employee);
+    setShowDocsModal(true);
   };
 
   if (loading) {
@@ -318,6 +332,13 @@ const Employees = () => {
                             Edit
                           </button>
                           <button 
+                            className="btn btn-secondary" 
+                            style={{ marginRight: '0.5rem', fontSize: '0.85rem' }}
+                            onClick={() => handleManageDocuments(employee)}
+                          >
+                            Documents
+                          </button>
+                          <button 
                             className="btn btn-danger"
                             style={{ fontSize: '0.85rem' }}
                             onClick={() => handleDeleteEmployee(
@@ -347,6 +368,35 @@ const Employees = () => {
             setShowAddModal(false);
             fetchEmployees();
           }}
+          departments={departments}
+          managers={managers}
+        />
+      )}
+
+      {showDocsModal && (
+        <EmployeeDocumentsModal
+          isOpen={showDocsModal}
+          onClose={() => {
+            setShowDocsModal(false);
+            setSelectedEmployee(null);
+          }}
+          employee={selectedEmployee}
+        />
+      )}
+
+      {showEditModal && (
+        <EditEmployeeModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEmployeeToEdit(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setEmployeeToEdit(null);
+            fetchEmployees();
+          }}
+          employee={employeeToEdit}
           departments={departments}
           managers={managers}
         />
@@ -950,6 +1000,498 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess, departments, managers })
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+};
+
+const EditEmployeeModal = ({ isOpen, onClose, onSuccess, employee, departments, managers }) => {
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState({
+    department: employee?.department || '',
+    manager: employee?.manager || '',
+    position: employee?.position || '',
+    salary: employee?.salary || '',
+    status: employee?.status || 'ACTIVE',
+    user_role: employee?.user_details?.role || employee?.user?.role || 'EMPLOYEE'
+  });
+
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        department: employee.department || '',
+        manager: employee.manager || '',
+        position: employee.position || '',
+        salary: employee.salary || '',
+        status: employee.status || 'ACTIVE',
+        user_role: employee.user_details?.role || employee.user?.role || 'EMPLOYEE'
+      });
+    }
+  }, [employee]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.position.trim()) newErrors.position = 'Position is required';
+    if (formData.salary && (isNaN(formData.salary) || parseFloat(formData.salary) <= 0)) {
+      newErrors.salary = 'Salary must be a positive number';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!employee?.id) return;
+    if (!validateForm()) return;
+
+    try {
+      setSaving(true);
+      const payload = {
+        department: formData.department || null,
+        manager: formData.manager || null,
+        position: formData.position,
+        salary: formData.salary ? parseFloat(formData.salary) : null,
+        status: formData.status,
+        user_role: formData.user_role
+      };
+
+      await api.patch(`/employees/${employee.id}/`, payload);
+      alert('Employee updated successfully.');
+      onSuccess();
+    } catch (err) {
+      console.error('Error updating employee:', err);
+      alert('Failed to update employee.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen || !employee) return null;
+
+  return (
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div className="modal-content" style={{
+        backgroundColor: 'white',
+        padding: '2rem',
+        borderRadius: '8px',
+        width: '90%',
+        maxWidth: '600px',
+        maxHeight: '80vh',
+        overflow: 'auto'
+      }}>
+        <div className="modal-header" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1.5rem',
+          borderBottom: '1px solid #eee',
+          paddingBottom: '1rem'
+        }}>
+          <h2>Edit Employee</h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              color: '#666'
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label>Role</label>
+              <select
+                name="user_role"
+                value={formData.user_role}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+              >
+                <option value="ADMIN_HR">HR Admin</option>
+                <option value="MANAGER">Manager</option>
+                <option value="EMPLOYEE">Employee</option>
+              </select>
+            </div>
+            <div>
+              <label>Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="TERMINATED">Terminated</option>
+                <option value="RESIGNED">Resigned</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label>Department</label>
+              <select
+                name="department"
+                value={formData.department || ''}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+              >
+                <option value="">No Department</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label>Manager</label>
+              <select
+                name="manager"
+                value={formData.manager || ''}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+              >
+                <option value="">No Manager</option>
+                {managers.map((mgr) => (
+                  <option key={mgr.id} value={mgr.id}>
+                    {mgr.user_details?.first_name} {mgr.user_details?.last_name} ({mgr.employee_id})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label>Position *</label>
+              <input
+                type="text"
+                name="position"
+                value={formData.position}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+              />
+              {errors.position && <div style={{ color: 'red', fontSize: '0.8rem' }}>{errors.position}</div>}
+            </div>
+            <div>
+              <label>Salary</label>
+              <input
+                type="number"
+                name="salary"
+                value={formData.salary}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+              />
+              {errors.salary && <div style={{ color: 'red', fontSize: '0.8rem' }}>{errors.salary}</div>}
+            </div>
+          </div>
+
+          <button className="btn btn-primary" type="submit" disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const EmployeeDocumentsModal = ({ isOpen, onClose, employee }) => {
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    document_type: 'ID',
+    title: '',
+    document_file: null,
+    description: '',
+    issue_date: '',
+    expiry_date: ''
+  });
+
+  useEffect(() => {
+    if (isOpen && employee?.id) {
+      fetchDocuments();
+    }
+  }, [isOpen, employee?.id]);
+
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/employee-documents/', {
+        params: { employee: employee.id }
+      });
+      const data = response.results || response.data || response || [];
+      setDocuments(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching documents:', err);
+      setError('Failed to load documents');
+      setDocuments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setFormData(prev => ({
+      ...prev,
+      document_file: file
+    }));
+  };
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (!formData.title.trim() || !formData.document_file) {
+      setError('Title and file are required');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+      const payload = new FormData();
+      payload.append('employee', employee.id);
+      payload.append('document_type', formData.document_type);
+      payload.append('title', formData.title);
+      payload.append('document_file', formData.document_file);
+      if (formData.description) payload.append('description', formData.description);
+      if (formData.issue_date) payload.append('issue_date', formData.issue_date);
+      if (formData.expiry_date) payload.append('expiry_date', formData.expiry_date);
+
+      await api.post('/employee-documents/', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setFormData({
+        document_type: 'ID',
+        title: '',
+        document_file: null,
+        description: '',
+        issue_date: '',
+        expiry_date: ''
+      });
+      fetchDocuments();
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      setError('Failed to upload document');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (documentId) => {
+    const confirmed = window.confirm('Delete this document?');
+    if (!confirmed) return;
+    try {
+      await api.delete(`/employee-documents/${documentId}/`);
+      fetchDocuments();
+    } catch (err) {
+      console.error('Error deleting document:', err);
+      setError('Failed to delete document');
+    }
+  };
+
+  if (!isOpen || !employee) return null;
+
+  return (
+    <div className="modal-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div className="modal-content" style={{
+        backgroundColor: 'white',
+        padding: '2rem',
+        borderRadius: '8px',
+        width: '95%',
+        maxWidth: '800px',
+        maxHeight: '85vh',
+        overflow: 'auto'
+      }}>
+        <div className="modal-header" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem',
+          borderBottom: '1px solid #eee',
+          paddingBottom: '1rem'
+        }}>
+          <div>
+            <h2>Employee Documents</h2>
+            <div style={{ color: '#666', fontSize: '0.9rem' }}>
+              {employee.user_details?.first_name} {employee.user_details?.last_name} ({employee.employee_id})
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              color: '#666'
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {error && (
+          <div style={{ marginBottom: '1rem', color: '#c33' }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div>
+            <h3 style={{ marginBottom: '0.75rem' }}>Upload Document</h3>
+            <form onSubmit={handleUpload}>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label>Type</label>
+                <select
+                  name="document_type"
+                  value={formData.document_type}
+                  onChange={handleInputChange}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                >
+                  <option value="ID">Identification</option>
+                  <option value="RESUME">Resume</option>
+                  <option value="CONTRACT">Contract</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label>Title *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label>File *</label>
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label>Issue Date</label>
+                  <input
+                    type="date"
+                    name="issue_date"
+                    value={formData.issue_date}
+                    onChange={handleInputChange}
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                  />
+                </div>
+                <div>
+                  <label>Expiry Date</label>
+                  <input
+                    type="date"
+                    name="expiry_date"
+                    value={formData.expiry_date}
+                    onChange={handleInputChange}
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+
+              <button className="btn btn-primary" type="submit" disabled={saving}>
+                {saving ? 'Uploading...' : 'Upload Document'}
+              </button>
+            </form>
+          </div>
+
+          <div>
+            <h3 style={{ marginBottom: '0.75rem' }}>Documents</h3>
+            {loading ? (
+              <div>Loading documents...</div>
+            ) : documents.length === 0 ? (
+              <div style={{ color: '#666' }}>No documents uploaded.</div>
+            ) : (
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                {documents.map((doc) => (
+                  <div key={doc.id} style={{ border: '1px solid #eee', borderRadius: '6px', padding: '0.75rem' }}>
+                    <div style={{ fontWeight: 'bold' }}>{doc.title}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#666' }}>{doc.document_type}</div>
+                    {doc.document_url && (
+                      <a href={doc.document_url} target="_blank" rel="noreferrer">View</a>
+                    )}
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <button className="btn btn-danger" style={{ fontSize: '0.8rem' }} onClick={() => handleDelete(doc.id)}>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

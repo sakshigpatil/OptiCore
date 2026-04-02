@@ -3,12 +3,16 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .models import Employee, Department
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Employee, Department, EmployeeDocument
 from .serializers import (
     EmployeeSerializer, 
     EmployeeCreateSerializer,
     EmployeeProfileSerializer,
-    DepartmentSerializer
+    DepartmentSerializer,
+    EmployeeUpdateSerializer,
+    EmployeeDocumentSerializer,
+    EmployeeDocumentCreateSerializer
 )
 from core.permissions import IsHROrAdmin, IsManagerOrAbove, IsOwnerOrHR
 
@@ -48,7 +52,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'destroy']:
             permission_classes = [IsHROrAdmin]
         elif self.action in ['update', 'partial_update']:
-            permission_classes = [IsOwnerOrHR]
+            permission_classes = [IsHROrAdmin]
         elif self.action in ['list']:
             # HR and Managers can view all employees
             permission_classes = [IsManagerOrAbove]
@@ -62,6 +66,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             return EmployeeCreateSerializer
         elif self.action == 'update_profile':
             return EmployeeProfileSerializer
+        elif self.action in ['update', 'partial_update']:
+            return EmployeeUpdateSerializer
         return EmployeeSerializer
     
     @action(detail=False, methods=['get'])
@@ -125,3 +131,43 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(subordinates, many=True)
         return Response(serializer.data)
+
+
+class EmployeeDocumentViewSet(viewsets.ModelViewSet):
+    """Employee document management viewset"""
+    queryset = EmployeeDocument.objects.select_related('employee', 'employee__user', 'uploaded_by').all()
+    serializer_class = EmployeeDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['employee', 'document_type']
+    search_fields = ['title', 'description', 'employee__user__first_name', 'employee__user__last_name']
+    ordering_fields = ['created_at', 'title', 'document_type']
+    ordering = ['-created_at']
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return EmployeeDocumentCreateSerializer
+        return EmployeeDocumentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        base_queryset = super().get_queryset()
+
+        if user.role in ['ADMIN_HR', 'MANAGER']:
+            return base_queryset
+
+        if hasattr(user, 'employee'):
+            return base_queryset.filter(employee=user.employee)
+
+        return base_queryset.none()
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsHROrAdmin]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)

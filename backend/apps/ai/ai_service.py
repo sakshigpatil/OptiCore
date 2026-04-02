@@ -3,7 +3,7 @@ import json
 import google.genai as genai
 from django.conf import settings
 from django.db import models
-from django.db.models import Count, Sum, Avg
+from django.db.models import Count, Sum, Avg, Min, Max
 from apps.employees.models import Employee, Department
 from apps.attendance.models import AttendanceRecord
 from apps.leaves.models import LeaveRequest
@@ -90,20 +90,20 @@ class AIService:
 
         if user.role == 'ADMIN_HR':
             permissions.extend([
-                'view_all_employees', 'view_all_departments', 'view_payroll_data',
-                'view_attendance_data', 'view_leave_data', 'view_project_data',
-                'approve_leaves', 'manage_employees', 'view_analytics'
+                'view_all_employees', 'view_all_departments', 'view_attendance_data',
+                'view_leave_data', 'view_payroll_data', 'view_project_data',
+                'view_analytics'
             ])
         elif user.role == 'MANAGER':
             permissions.extend([
                 'view_team_employees', 'view_department_stats', 'view_team_attendance',
-                'view_team_leaves', 'view_team_projects', 'approve_team_leaves',
-                'view_basic_payroll'
+                'view_team_leaves', 'view_team_projects', 'view_basic_payroll',
+                'view_team_performance'
             ])
         elif user.role == 'EMPLOYEE':
             permissions.extend([
                 'view_own_profile', 'view_own_attendance', 'view_own_leaves',
-                'view_own_payroll', 'request_leaves', 'view_public_projects'
+                'view_basic_payroll', 'view_public_projects'
             ])
 
         return permissions
@@ -131,7 +131,7 @@ class AIService:
         if 'view_payroll_data' in permissions or 'view_basic_payroll' in permissions:
             context_parts.append(f"- Payroll Runs: {PayrollRun.objects.count()}")
 
-        if 'view_project_data' in permissions or 'view_public_projects' in permissions:
+        if 'view_project_data' in permissions or 'view_team_projects' in permissions or 'view_public_projects' in permissions:
             from apps.projects.models import Project, Task
             context_parts.append(f"- Total Projects: {Project.objects.count()}")
             context_parts.append(f"- Active Projects: {Project.objects.filter(status='IN_PROGRESS').count()}")

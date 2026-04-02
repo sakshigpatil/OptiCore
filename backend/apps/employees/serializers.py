@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Employee, Department
+from .models import Employee, Department, EmployeeDocument
 from apps.authentication.serializers import UserSerializer
+from apps.authentication.models import User
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -136,3 +137,63 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
             'profile_picture', 'emergency_contact_name', 'emergency_contact_phone'
         ]
         read_only_fields = ['id', 'employee_id', 'user_details']
+
+
+class EmployeeUpdateSerializer(serializers.ModelSerializer):
+    """Employee update serializer (HR updates)"""
+    user_role = serializers.ChoiceField(choices=User.ROLE_CHOICES, required=False)
+
+    class Meta:
+        model = Employee
+        fields = [
+            'department', 'manager', 'position', 'hire_date', 'termination_date',
+            'salary', 'address', 'date_of_birth', 'profile_picture', 'status',
+            'emergency_contact_name', 'emergency_contact_phone', 'user_role'
+        ]
+
+    def update(self, instance, validated_data):
+        user_role = validated_data.pop('user_role', None)
+        if user_role and instance.user:
+            instance.user.role = user_role
+            instance.user.save(update_fields=['role'])
+        return super().update(instance, validated_data)
+
+
+class EmployeeDocumentSerializer(serializers.ModelSerializer):
+    """Employee document serializer"""
+    employee_name = serializers.SerializerMethodField()
+    uploaded_by_name = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployeeDocument
+        fields = [
+            'id', 'employee', 'employee_name', 'document_type', 'title', 'document_file',
+            'document_url', 'description', 'issue_date', 'expiry_date', 'uploaded_by',
+            'uploaded_by_name', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'employee_name', 'uploaded_by_name', 'document_url']
+
+    def get_employee_name(self, obj):
+        return obj.employee.user.get_full_name() if obj.employee and obj.employee.user else None
+
+    def get_uploaded_by_name(self, obj):
+        return obj.uploaded_by.get_full_name() if obj.uploaded_by else None
+
+    def get_document_url(self, obj):
+        if not obj.document_file:
+            return None
+        request = self.context.get('request')
+        url = obj.document_file.url
+        return request.build_absolute_uri(url) if request else url
+
+
+class EmployeeDocumentCreateSerializer(serializers.ModelSerializer):
+    """Employee document create/update serializer"""
+
+    class Meta:
+        model = EmployeeDocument
+        fields = [
+            'employee', 'document_type', 'title', 'document_file',
+            'description', 'issue_date', 'expiry_date'
+        ]

@@ -85,3 +85,31 @@ class Employee(models.Model):
                     img.save(self.profile_picture.path)
             except Exception:
                 pass  # Handle image processing errors gracefully
+
+
+class EmployeeDocument(models.Model):
+    """Employee document storage (ID, resume, contracts)"""
+
+    DOCUMENT_TYPE_CHOICES = [
+        ('ID', 'Identification'),
+        ('RESUME', 'Resume'),
+        ('CONTRACT', 'Contract'),
+        ('OTHER', 'Other'),
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='documents')
+    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPE_CHOICES)
+    title = models.CharField(max_length=150)
+    document_file = models.FileField(upload_to='employee_documents/')
+    description = models.TextField(blank=True, null=True)
+    issue_date = models.DateField(blank=True, null=True)
+    expiry_date = models.DateField(blank=True, null=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.employee.employee_id} - {self.title}"

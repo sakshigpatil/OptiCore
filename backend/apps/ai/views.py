@@ -7,9 +7,10 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .ai_service import AIService
 from .models import ChatMessage
+from core.permissions import HasRolePermission
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasRolePermission])
 def chat_with_ai(request):
     """Endpoint for chatting with the AI HR assistant"""
     message = request.data.get('message', '').strip()
@@ -50,7 +51,7 @@ def chat_with_ai(request):
         )
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasRolePermission])
 def get_chat_history(request):
     """Get chat history for the authenticated user"""
     messages = ChatMessage.objects.filter(user=request.user).order_by('-timestamp')[:50]
@@ -64,7 +65,7 @@ def get_chat_history(request):
     return Response(data)
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasRolePermission])
 def clear_chat_history(request):
     """Clear chat history for the authenticated user"""
     ChatMessage.objects.filter(user=request.user).delete()

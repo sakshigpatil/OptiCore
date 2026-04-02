@@ -5,6 +5,8 @@ import api from '../../services/api';
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const [employeeData, setEmployeeData] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [docsLoading, setDocsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,8 +24,23 @@ const Profile = () => {
       }
     };
 
+    const fetchDocuments = async () => {
+      try {
+        setDocsLoading(true);
+        const response = await api.get('/employee-documents/');
+        const data = response.results || response.data || response || [];
+        setDocuments(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error fetching documents:', error);
+        setDocuments([]);
+      } finally {
+        setDocsLoading(false);
+      }
+    };
+
     if (user) {
       fetchEmployeeData();
+      fetchDocuments();
     }
   }, [user]);
 
@@ -121,6 +138,29 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginTop: '2rem' }}>
+          <div className="card-header">Documents</div>
+          <div className="card-body">
+            {docsLoading ? (
+              <div>Loading documents...</div>
+            ) : documents.length === 0 ? (
+              <div style={{ color: '#666' }}>No documents available.</div>
+            ) : (
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                {documents.map((doc) => (
+                  <div key={doc.id} style={{ border: '1px solid #eee', borderRadius: '6px', padding: '0.75rem' }}>
+                    <div style={{ fontWeight: 'bold' }}>{doc.title}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#666' }}>{doc.document_type}</div>
+                    {doc.document_url && (
+                      <a href={doc.document_url} target="_blank" rel="noreferrer">View</a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
