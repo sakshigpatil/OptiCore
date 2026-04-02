@@ -18,6 +18,7 @@ import Employees from './pages/hr/Employees'
 
 // Manager Pages
 import ManagerDashboard from './pages/manager/Dashboard'
+import ManagerPerformance from './pages/manager/Performance'
 import Departments from './pages/hr/Departments'
 import Leaves from './pages/hr/Leaves'
 import Attendance from './pages/hr/Attendance'
@@ -29,6 +30,7 @@ import CustomReports from './pages/hr/CustomReports'
 
 // Employee Pages
 import EmployeeDashboard from './pages/employee/Dashboard'
+import EmployeePerformance from './pages/employee/Performance'
 import Profile from './pages/employee/Profile'
 import Tasks from './pages/employee/Tasks'
 import MyAttendance from './pages/employee/Attendance'
@@ -175,6 +177,7 @@ function App() {
                   <Route path="departments" element={<Departments />} />
                   <Route path="leaves" element={<Leaves />} />
                   <Route path="attendance" element={<Attendance />} />
+                  <Route path="performance" element={<ManagerPerformance />} />
                   <Route path="payroll" element={<Payroll />} />
                   <Route path="employee-approvals" element={<EmployeeApprovals />} />
                   <Route path="scheduled-reports" element={<ScheduledReports />} />
@@ -191,6 +194,7 @@ function App() {
               <RoleBasedRoute allowedRoles={['MANAGER']}>
                 <Routes>
                   <Route path="dashboard" element={<ManagerDashboard />} />
+                  <Route path="performance" element={<ManagerPerformance />} />
                   <Route path="employees" element={<Employees />} />
                   <Route path="leaves" element={<Leaves />} />
                   <Route path="attendance" element={<Attendance />} />

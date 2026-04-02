@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/v1/leaves/', include('apps.leaves.urls')),
     path('api/v1/payroll/', include('apps.payroll.urls')),
     path('api/v1/holidays/', include('apps.holidays.urls')),
+    path('api/v1/performance/', include('apps.performance.urls')),
     path('api/v1/', include('apps.notifications.urls')),
     path('api/v1/analytics/', include('apps.analytics.urls')),
     path('api/v1/ai/', include('apps.ai.urls')),

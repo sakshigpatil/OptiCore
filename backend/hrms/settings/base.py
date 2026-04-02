@@ -49,6 +49,7 @@ LOCAL_APPS = [
     'apps.ai',
     'apps.analytics',
     'apps.holidays',
+    'apps.performance',
     # 'apps.chatbot',  # archived
 ]
 

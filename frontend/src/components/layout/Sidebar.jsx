@@ -30,12 +30,14 @@ const Sidebar = () => {
         { path: '/hr/attendance', label: 'Attendance', icon: CalendarIcon },
         { path: '/hr/leaves', label: 'Leave Requests', icon: DocumentTextIcon },
         { path: '/hr/payroll', label: 'Payroll', icon: CurrencyDollarIcon },
+        { path: '/hr/performance', label: 'Performance', icon: BeakerIcon },
         { path: '/hr/scheduled-reports', label: 'Scheduled Reports', icon: ClipboardDocumentListIcon },
         { path: '/hr/custom-reports', label: 'Custom Reports', icon: DocumentTextIcon },
       ];
     } else if (user?.role === 'MANAGER') {
       return [
         { path: '/manager/dashboard', label: 'Manager Dashboard', icon: ChartBarIcon },
+        { path: '/manager/performance', label: 'Performance', icon: BeakerIcon },
         { path: '/manager/employees', label: 'My Team', icon: UsersIcon },
         { path: '/manager/leaves', label: 'Leave Approvals', icon: CheckCircleIcon },
         { path: '/manager/attendance', label: 'Team Attendance', icon: CalendarIcon },
@@ -44,6 +46,7 @@ const Sidebar = () => {
     } else {
       return [
         { path: '/employee/dashboard', label: 'Dashboard', icon: ChartBarIcon },
+        { path: '/employee/performance', label: 'Performance', icon: BeakerIcon },
         { path: '/employee/profile', label: 'Profile', icon: UserIcon },
         { path: '/employee/tasks', label: 'Tasks', icon: ClipboardDocumentListIcon },
         { path: '/employee/attendance', label: 'My Attendance', icon: CalendarIcon },
