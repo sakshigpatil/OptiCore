@@ -1,8 +1,16 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import viewsets, status
+from django.core.files.base import ContentFile
+from django.core.cache import cache
 from django.http import HttpResponse
+from django.utils import timezone
 from django.db.models import Count, Sum, Avg
+from apps.analytics.models import ScheduledReport
+from apps.analytics.serializers import ScheduledReportSerializer
+from apps.analytics.reporting import generate_report_bytes
+from apps.notifications.models import Notification
 from apps.employees.models import Employee, Department
 from apps.attendance.models import AttendanceRecord
 from apps.leaves.models import LeaveRequest
@@ -22,6 +30,11 @@ def get_dashboard_analytics(request):
     user = request.user
     permissions = getattr(user, 'permissions', get_user_permissions(user))
 
+    cache_key = f"analytics:dashboard:{user.id}:{user.role}"
+    cached_payload = cache.get(cache_key)
+    if cached_payload:
+        return Response(cached_payload)
+
     analytics_data = {
         'employee_stats': get_employee_stats(user, permissions),
         'attendance_trends': get_attendance_trends(user, permissions),
@@ -30,7 +43,98 @@ def get_dashboard_analytics(request):
         'department_distribution': get_department_distribution(user, permissions),
     }
 
+    cache.set(cache_key, analytics_data, timeout=60)
     return Response(analytics_data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, HasRolePermission])
+def generate_custom_report(request):
+    """Generate a custom report based on request parameters."""
+    user = request.user
+    permissions = getattr(user, 'permissions', get_user_permissions(user))
+
+    report_type = request.data.get('report_type')
+    file_format = request.data.get('file_format', 'csv')
+    start_date = request.data.get('start_date')
+    end_date = request.data.get('end_date')
+
+    if report_type not in ['employees', 'attendance']:
+        return Response({'error': 'Unsupported report type'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if file_format not in ['csv', 'excel']:
+        return Response({'error': 'Unsupported file format'}, status=status.HTTP_400_BAD_REQUEST)
+
+    parsed_start = None
+    parsed_end = None
+
+    try:
+        if start_date:
+            parsed_start = datetime.fromisoformat(start_date).date()
+        if end_date:
+            parsed_end = datetime.fromisoformat(end_date).date()
+    except ValueError:
+        return Response({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    buffer = generate_report_bytes(report_type, file_format, user, permissions, parsed_start, parsed_end)
+
+    extension = 'xlsx' if file_format == 'excel' else 'csv'
+    filename = f"custom_{report_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
+    content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    if file_format == 'csv':
+        content_type = 'text/csv'
+
+    response = HttpResponse(buffer.getvalue(), content_type=content_type)
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+class ScheduledReportViewSet(viewsets.ModelViewSet):
+    serializer_class = ScheduledReportSerializer
+    permission_classes = [IsAuthenticated, HasRolePermission]
+
+    def get_queryset(self):
+        user = self.request.user
+        if getattr(user, 'role', '') == 'ADMIN_HR':
+            return ScheduledReport.objects.all()
+        return ScheduledReport.objects.filter(owner=user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def run_now(self, request, pk=None):
+        report = self.get_object()
+        permissions = getattr(report.owner, 'permissions', get_user_permissions(report.owner))
+
+        buffer = generate_report_bytes(report.report_type, report.file_format, report.owner, permissions)
+        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+        ext = 'xlsx' if report.file_format == 'excel' else 'csv'
+        filename = f"{report.report_type}_{report.owner_id}_{timestamp}.{ext}"
+
+        report.last_report_file.save(filename, ContentFile(buffer.getvalue()), save=False)
+        report.last_run_at = timezone.now()
+        report.last_status = 'success'
+        report.last_message = 'Report generated successfully'
+        report.next_run_at = report.compute_next_run(timezone.now())
+        report.save()
+
+        report_url = None
+        if report.last_report_file:
+            report_url = request.build_absolute_uri(report.last_report_file.url)
+
+        Notification.objects.create(
+            recipient=report.owner,
+            title=f"Scheduled report ready: {report.name}",
+            message=f"Your {report.report_type} report is ready.",
+            notification_type='INFO',
+            action_url=report_url
+        )
+
+        return Response({
+            'message': 'Report generated',
+            'file': report_url
+        }, status=status.HTTP_200_OK)
 
 def get_employee_stats(user, permissions):
     """Get employee statistics for dashboard"""

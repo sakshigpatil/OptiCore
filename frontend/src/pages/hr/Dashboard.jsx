@@ -257,11 +257,11 @@ const HRDashboard = () => {
       switch (type) {
         case 'employees':
           exportPath = 'analytics/export/employees/';
-          filename = `employees.${format}`;
+          filename = format === 'excel' ? 'employees.xlsx' : `employees.${format}`;
           break;
         case 'attendance':
           exportPath = 'analytics/export/attendance/';
-          filename = `attendance.${format}`;
+          filename = format === 'excel' ? 'attendance.xlsx' : `attendance.${format}`;
           break;
         default:
           throw new Error('Unknown export type');

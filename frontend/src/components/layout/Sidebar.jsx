@@ -30,6 +30,8 @@ const Sidebar = () => {
         { path: '/hr/attendance', label: 'Attendance', icon: CalendarIcon },
         { path: '/hr/leaves', label: 'Leave Requests', icon: DocumentTextIcon },
         { path: '/hr/payroll', label: 'Payroll', icon: CurrencyDollarIcon },
+        { path: '/hr/scheduled-reports', label: 'Scheduled Reports', icon: ClipboardDocumentListIcon },
+        { path: '/hr/custom-reports', label: 'Custom Reports', icon: DocumentTextIcon },
       ];
     } else if (user?.role === 'MANAGER') {
       return [

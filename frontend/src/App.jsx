@@ -24,6 +24,8 @@ import Attendance from './pages/hr/Attendance'
 import Payroll from './pages/hr/Payroll'
 import EmployeeApprovals from './pages/hr/EmployeeApprovals'
 import SkillAnalysis from './pages/hr/SkillAnalysis'
+import ScheduledReports from './pages/hr/ScheduledReports'
+import CustomReports from './pages/hr/CustomReports'
 
 // Employee Pages
 import EmployeeDashboard from './pages/employee/Dashboard'
@@ -175,6 +177,8 @@ function App() {
                   <Route path="attendance" element={<Attendance />} />
                   <Route path="payroll" element={<Payroll />} />
                   <Route path="employee-approvals" element={<EmployeeApprovals />} />
+                  <Route path="scheduled-reports" element={<ScheduledReports />} />
+                  <Route path="custom-reports" element={<CustomReports />} />
                 </Routes>
               </RoleBasedRoute>
             }
