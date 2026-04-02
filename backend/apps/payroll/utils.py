@@ -283,11 +283,26 @@ def get_attendance_summary_for_employee(employee, year, month):
     """
     try:
         from apps.attendance.models import AttendanceRecord
-        
-        # Get working days in month
+        from datetime import date, timedelta
+
+        # Get working days in month excluding weekends and holidays
         _, last_day = monthrange(year, month)
-        working_days = last_day  # Simplified - should exclude weekends/holidays
-        
+        working_days = 0
+        for d in range(1, last_day + 1):
+            day = date(year, month, d)
+            # Skip weekends
+            if day.weekday() >= 5:
+                continue
+            # Skip holidays (uses apps.holidays.models if available)
+            try:
+                if is_holiday(day):
+                    continue
+            except Exception:
+                # If holidays app not available or any error, ignore
+                pass
+            # Count this day as a working day
+            working_days += 1
+
         # Get attendance records for the month
         attendance_records = AttendanceRecord.objects.filter(
             employee__user=employee,
@@ -318,6 +333,30 @@ def get_attendance_summary_for_employee(employee, year, month):
             'overtime_hours': 0,
             'lop_days': 0
         }
+
+
+def is_holiday(check_date, country: str | None = None) -> bool:
+    """
+    Returns True if `check_date` is a holiday. Handles recurring holidays.
+    """
+    try:
+        from apps.holidays.models import Holiday
+        # Exact-date non-recurring holiday
+        if Holiday.objects.filter(date=check_date, is_recurring=False).exists():
+            return True
+        # Recurring holiday: match month/day
+        if Holiday.objects.filter(is_recurring=True, date__month=check_date.month, date__day=check_date.day).exists():
+            return True
+        # Optionally scope by country
+        if country:
+            if Holiday.objects.filter(date=check_date, country=country).exists():
+                return True
+            if Holiday.objects.filter(is_recurring=True, date__month=check_date.month, date__day=check_date.day, country=country).exists():
+                return True
+    except Exception:
+        return False
+
+    return False
 
 
 def generate_bank_transfer_file(payroll_run):
